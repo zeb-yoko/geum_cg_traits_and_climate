@@ -70,7 +70,7 @@ TukeyHSD(a)
 Proportion of variance
 pull out the important components, particularly variance and (optionally) CV
 ```{r}
-rpt.f <- rptGaussian(formula = Chlorophyll.Content ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = chl.1, nboot = 1000, ratio = T, adjusted = F)
+rpt.f <- rptGaussian(formula = Chlorophyll.Content ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = chl.1, nboot = 0, ratio = T, adjusted = F)
 rpt.f
 ```
 
@@ -123,7 +123,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.s <- rptGaussian(formula = SLA ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sla.1, nboot = 1000, ratio = T, adjusted = F))
+(rpt.s <- rptGaussian(formula = SLA ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sla.1, nboot = 0, ratio = T, adjusted = F))
 				
 ```
 
@@ -163,7 +163,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.l <- rptGaussian(formula = Leaf.Dry.Matter.Content ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sla.1, nboot = 1000, ratio = T, adjusted = F))
+(rpt.l <- rptGaussian(formula = Leaf.Dry.Matter.Content ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sla.1, nboot = 0, ratio = T, adjusted = F))
 				
 ```
 
@@ -213,7 +213,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.c <- rptGaussian(formula = Conductance ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = cond, nboot = 1000, ratio = T, adjusted = F))
+(rpt.c <- rptGaussian(formula = Conductance ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = cond, nboot = 0, ratio = T, adjusted = F))
 				
 ```
 
@@ -267,7 +267,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.db <- rptGaussian(formula = Density_B ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sto.2, nboot = 1000, npermut = 1000, ratio = T, adjusted = F))
+(rpt.db <- rptGaussian(formula = Density_B ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sto.2, nboot = 0, npermut = 1000, ratio = T, adjusted = F))
 ```
 
 ```{r}
@@ -309,7 +309,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.dt <- rptGaussian(formula = Density_T ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sto.2, nboot = 1000, ratio = T, adjusted = F))
+(rpt.dt <- rptGaussian(formula = Density_T ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sto.2, nboot = 0, ratio = T, adjusted = F))
 ```
 
 ```{r}
@@ -354,7 +354,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.rb <- rptGaussian(formula = Av_GCLengthB ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = stoSizeB, nboot = 1000, ratio = T, adjusted = F))
+(rpt.rb <- rptGaussian(formula = Av_GCLengthB ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = stoSizeB, nboot = 0, ratio = T, adjusted = F))
 ```
 
 ```{r}
@@ -400,7 +400,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.rt <- rptGaussian(formula = Av_GCLengthT ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = stoSizeT, nboot = 1000, ratio = T, adjusted = F))
+(rpt.rt <- rptGaussian(formula = Av_GCLengthT ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = stoSizeT, nboot = 0, ratio = T, adjusted = F))
 ```
 
 ```{r}
@@ -445,7 +445,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.aib <- rptGaussian(formula = SAI_B ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sto.aib, nboot = 1000, ratio = T, adjusted = F))
+(rpt.aib <- rptGaussian(formula = SAI_B ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sto.aib, nboot = 0, ratio = T, adjusted = F))
 				
 ```
 
@@ -491,7 +491,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.ait <- rptGaussian(formula = SAI_T ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sto.ait, nboot = 1000, ratio = T, adjusted = F))
+(rpt.ait <- rptGaussian(formula = SAI_T ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = sto.ait, nboot = 0, ratio = T, adjusted = F))
 ```
 
 
@@ -538,7 +538,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.cic <- rptGaussian(formula = dC13 ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = CIC, nboot = 1000, ratio = T, adjusted = F))
+(rpt.cic <- rptGaussian(formula = dC13 ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = CIC, nboot = 0, ratio = T, adjusted = F))
 ```
 
 ```{r}
@@ -595,7 +595,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.sd <- rptGaussian(formula = Sinus_Depth ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = df1, nboot = 1000, ratio = T, adjusted = F))
+(rpt.sd <- rptGaussian(formula = Sinus_Depth ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = df1, nboot = 0, ratio = T, adjusted = F))
 ```
 
 ```{r}
@@ -641,7 +641,7 @@ TukeyHSD(a)
 Repeatability
 pull out the important components, particularly variance and CV
 ```{r}
-(rpt.mv <- rptGaussian(formula = Mid_Vein_Length ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = df1, nboot = 1000, ratio = T, adjusted = F))
+(rpt.mv <- rptGaussian(formula = Mid_Vein_Length ~ Region + (1|Population), grname = c("Population", "Fixed", "Residual"), data = df1, nboot = 0, ratio = T, adjusted = F))
 ```
 
 ```{r}
@@ -683,7 +683,7 @@ TukeyHSD(a)
 ```{r}
 rpt.ml <- rptBinary(formula = Mini_Leaflets_YN ~ Region + (1|Population), 
 						  grname = c("Population", "Fixed", "Residual"), 
-						  data = df1, link = "logit", nboot = 1000, ratio = T, adjusted = F)
+						  data = df1, link = "logit", nboot = 0, ratio = T, adjusted = F)
 rpt.ml
 
 ```
@@ -732,7 +732,48 @@ TukeyHSD(a)
 ```{r}
 rpt.ll <- rptBinary(formula = MiniLeaflet_Lobed_YN ~ Region + (1|Population), 
 						  grname = c("Population", "Fixed", "Residual"), 
-						  data = df1, link = "logit", nboot = 1000, ratio = T, adjusted = F)
+						  data = df1, link = "logit", nboot = 0, ratio = T, adjusted = F)
 rpt.ll
 rpt.ll$R[1,]
 ```
+
+```{r}
+##Add to table of R values##
+prop.v[15,1] <- "Lobed minileaflets"
+prop.v[15,2:4] <- rpt.ll$R[1,]
+prop.v[15,5] <- "morphological"
+```
+##write table
+```{r}
+write.csv(prop.v, "Proportions of variancewa <- anova.csv", row.names =F)
+```
+
+##Difference by trait class?
+```{r}
+##Region first##
+df<- as.data.frame(prop.v)
+df<- read.csv("Proportions of variancewa <- anova.csv")
+df<-as.data.frame(df)
+df <- droplevels(df[-which(df$Trait =="Stomatal Conductance"),])
+View(df)
+shapiro.test(df$Region)
+bartlett.test(df$Region, g=df$Trait_class)
+##data fails bartlett.test, run Dunn.test##
+ar <- aov(Region~Trait_class, data = df)
+a <- anova(ar)
+TukeyHSD(ar)
+dunn.test(x= df$Region, g=df$Trait_class, kw = T, altp = T, method ="BH")
+```
+
+#Population
+```{r}
+##Population next##
+shapiro.test(df$Population)
+bartlett.test(df$Population, g=df$Trait_class)
+ap <- aov(Population~Trait_class, data = df)
+a <- anova(ap)
+df$Trait_class <- as.factor(df$Trait_class)
+kruskal.test(x=df$Population,g =df$Trait_class)
+#dunn.test(x= df$Population, g=df$Trait_class, kw = F)
+```
+
