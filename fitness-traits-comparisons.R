@@ -1,45 +1,51 @@
 setwd("C:/Users/eckat/Desktop")
 stoma <- read.csv("GeumStomata_V9.csv")
-iso<-read.csv("Refined_Isotope.csv")
-clim <- read.csv("all_climate_data.csv")
+str(stoma)
+stoma$Region <-gsub("GL Alvar", "GL_Alvar", stoma$Region)
+stoma$Region <-gsub("M Alvar", "MB_Alvar", stoma$Region)
 
+iso<-read.csv("Refined_Isotope.csv")
+str(iso)
+clim <- read.csv("all_climate_data.csv")
+str(clim)
+clim$Region <-gsub("GL Alvar", "GL_Alvar", clim$Region)
+clim$Region <-gsub("M Alvar", "MB_Alvar", clim$Region)
+
+View(clim)
 library(dplyr)
-df <-iso %>% dplyr::inner_join(clim, by=c("Population"))
+df <-iso %>% dplyr::inner_join(clim, by=c("Population", "Region"))
+str(df)
+View(df)
 df.all <- read.csv("full_clean_geum_experiment.csv")
+df.all$Region <-gsub("GL_alvar", "GL_Alvar", df.all$Region)
+df.all$Region <-gsub("MB_alvar", "MB_Alvar", df.all$Region)
+View(df.all)
 ##select only 2018 fitness data for comparison##
 ##2018 single year is sm.3; sm2018 is cumulative fitness from 2016-2018##
-fits <- select(df.all, Sample.ID, sm.3)
-df <- merge(df, fits, by = "Sample.ID", all.x = T)
+fits <- select(df.all, Region, Sample.ID, sm.3, No.Fruit.2018)
+df <- merge(fits, df, by = c("Sample.ID", "Region"), all.x = T)
+str(df)
+View(df)
 library(ggplot2)
-col.kat <- c("darkslategray3", "gold3")
 col.bw<- c("black" , "gray52")
-#
-#b<-read.csv("bluestem.csv")
+
+
 #remove manitoba
-dfa<-subset(df, subset=Region.x=='Prairie' | Region.x=='GL Alvar')
+dfa<-subset(df, subset=Region=='Prairie' | Region=='GL_Alvar')
+
 #-----------------------------------------------------------------
 #isotope
 #-----------------------------------------------------------------
-#climate-moisture deficit for spring----------------------------------------------------
-c<-ggplot(dfa, aes(x=dfa$CMD_sp, y=dfa$dC13, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
-  annotate("text",label="GLAr^2 == 0.01917",x=135,y=-27.2,parse=TRUE,size=2,colour="darkslategray3")+
-  annotate("text",label="PRAr^2 == 0.03289",x=135,y=-27.4,parse=TRUE,size=2,colour="gold3")+
-  ylab("dC13")+xlab("Spring Climate Moisture Deficit")+ 
-  geom_vline(xintercept=55,col="gray60",lwd=0.75,lty=2)+
+#fitness x isotope----------------------------------------------------
+c<-ggplot(dfa, aes(x=dfa$dC13, y = dfa$sm.3, colour=Region))+
+  geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y ~ poly(x, 2))+theme_classic()+
+  scale_colour_manual(values=col.bw) +
+#  annotate("text",label="GLAr^2 == 0.01917",x=135,y=-27.2,parse=TRUE,size=2,colour="darkslategray3")+
+ # annotate("text",label="PRAr^2 == 0.03289",x=135,y=-27.4,parse=TRUE,size=2,colour="gold3")+
+  #ylab("dC13")+xlab("Spring Climate Moisture Deficit")+ 
+#  geom_vline(xintercept=55,col="gray60",lwd=0.75,lty=2)+
   theme(legend.position = "none")
 c
-#bw
-cb<-ggplot(dfa, aes(x=dfa$CMD_sp, y=dfa$dC13, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=c("black", "gray48")) +
-  annotate("text",label="GLAr^2 == 0.01917",x=135,y=-27.2,parse=TRUE,size=2,colour="black")+
-  annotate("text",label="PRAr^2 == 0.03289",x=135,y=-27.4,parse=TRUE,size=2,colour="gray48")+
-  ylab("dC13")+xlab("Spring Climate Moisture Deficit")+ 
-  geom_vline(xintercept=55,col="gray60",lwd=0.75,lty=2)+
-  theme(legend.position = "none")
-cb
 
 cmodp<-lm(prc$dC13~prc$CMD_sp) 
 summary(cmodp) 
@@ -50,145 +56,35 @@ summary(cmodg)
 #Multiple R-squared:  0.01917,	Adjusted R-squared:  0.0003037 
 #F-statistic: 1.016 on 1 and 52 DF,  p-value: 0.3181
 
-#climate-moisture deficit for summer----------------------------------------------------
-#color
-d<-ggplot(dfa, aes(x=dfa$CMD_sm, y=dfa$dC13, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
-  annotate("text",label="GLAr^2 == 0.1035",x=400,y=-27.2,parse=TRUE,size=2,colour="darkslategray3")+
-  annotate("text",label="PRAr^2 == 0.1617",x=400,y=-27.4,parse=TRUE,size=2,colour="gold3")+
-  ylab("dC13")+xlab("Summer Climate Moisture Deficit")+ 
-  geom_vline(xintercept=155,col="gray60",lwd=0.75,lty=2)+
-  theme(legend.position = "none")
-d
-#b&w
-dw<-ggplot(dfa, aes(x=dfa$CMD_sm, y=dfa$dC13, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=c("black", "gray48")) +
-  annotate("text",label="GLAr^2 == 0.1035",x=400,y=-27.2,parse=TRUE,size=2,colour="black")+
-  annotate("text",label="PRAr^2 == 0.1617",x=400,y=-27.4,parse=TRUE,size=2,colour="gray48")+
-  ylab("dC13")+xlab("Summer Climate Moisture Deficit")+ 
-  geom_vline(xintercept=155,col="gray60",lwd=0.75,lty=2)+
-  theme(legend.position = "none")
-dw
+########################################
 
-dmodp<-lm(prc$dC13~prc$CMD_sm) 
-summary(dmodp) 
-#Multiple R-squared:  0.1617,	Adjusted R-squared:  0.1328 
-#F-statistic: 5.596 on 1 and 29 DF,  p-value: 0.02491
-dmodg<-lm(glc$dC13~glc$CMD_sm) 
-summary(dmodg)
-#Multiple R-squared:  0.1035,	Adjusted R-squared:  0.08629 
-#F-statistic: 6.005 on 1 and 52 DF,  p-value: 0.01767
+##load stomata into fitness-isotope sheet##
+df <- merge(df, stoma, by = c("Sample.ID", "Region"), all = T)
+dfb<-subset(df, subset=Region=='Prairie' | Region=='GL_Alvar')
+#library(ggpubr)
+#col <- ggarrange(c, d, h, i,labels = c("A", "B", "C", "D"),ncol=2,nrow=2)
+#col
 
-#spring mean maximum temperature (?C)---------------------------------------------------
-h<-ggplot(dfa, aes(x=dfa$Tmax_sp, y=dfa$dC13, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
-  annotate("text",label="GLAr^2 == 0.1225",x=16,y=-27.2,parse=TRUE,size=2,colour="darkslategray3")+
-  annotate("text",label="PRAr^2 == 0.0081",x=16,y=-27.4,parse=TRUE,size=2,colour="gold3")+
-  ylab("dC13")+xlab("Spring Mean Maximum Temperature (?C)")+
-  geom_vline(xintercept=13.7,col="gray60",lwd=0.75,lty=2)+
-  theme(legend.position = "none")
-
-h
+#bw<-ggarrange(cb,dw,hb,ib, labels = c("A", "B", "C", "D"),ncol=2,nrow=2)
 #bw
-hb<-ggplot(dfa, aes(x=dfa$Tmax_sp, y=dfa$dC13, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=c("black", "gray48")) +
-  annotate("text",label="GLAr^2 == 0.1225",x=16,y=-27.2,parse=TRUE,size=2,colour="black")+
-  annotate("text",label="PRAr^2 == 0.0081",x=16,y=-27.4,parse=TRUE,size=2,colour="gray48")+
-  ylab("dC13")+xlab("Spring Mean Maximum Temperature (?C)")+
-  geom_vline(xintercept=13.7,col="gray60",lwd=0.75,lty=2)+
-  theme(legend.position = "none")
-
-hb
-
-hmodp<-lm(prc$dC13~prc$Tmax_sp) 
-summary(hmodp) 
-#Multiple R-squared:  0.008075,	Adjusted R-squared:  -0.02613 
-#F-statistic: 0.2361 on 1 and 29 DF,  p-value: 0.6307
-hmodg<-lm(glc$dC13~glc$Tmax_sp) 
-summary(hmodg)
-#Multiple R-squared:  0.1225,	Adjusted R-squared:  0.1056 
-#F-statistic: 7.261 on 1 and 52 DF,  p-value: 0.009468
-
-#summer mean maximum temperature (?C)----------------------------------------------------
-i<-ggplot(dfa, aes(x=dfa$Tmax_sm, y=dfa$dC13, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
-  annotate("text",label="GLAr^2 == 0.09879",x=28.5,y=-27.2,parse=TRUE,size=2,colour="darkslategray3")+
-  annotate("text",label="PRAr^2 == 0.00042",x=28.5,y=-27.4,parse=TRUE,size=2,colour="gold3")+
-  ylab("dC13")+xlab("Summer Mean Maximum Temperature (?C)")+
-  geom_vline(xintercept=27.5,col="gray60",lwd=0.75,lty=2)+theme(legend.position = "none")
-                                        
-i
-#bw
-ib<-ggplot(dfa, aes(x=dfa$Tmax_sm, y=dfa$dC13, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=c("black", "gray48")) +
-  annotate("text",label="GLAr^2 == 0.09879",x=28.5,y=-27.2,parse=TRUE,size=2,colour="black")+
-  annotate("text",label="PRAr^2 == 0.00042",x=28.5,y=-27.4,parse=TRUE,size=2,colour="gray48")+
-  ylab("dC13")+xlab("Summer Mean Maximum Temperature (?C)")+
-  geom_vline(xintercept=27.5,col="gray60",lwd=0.75,lty=2)+theme(legend.position = "none")
-
-ib
-
-imodp<-lm(prc$dC13~prc$Tmax_sm) 
-summary(imodp) 
-#Multiple R-squared:  0.0004289,	Adjusted R-squared:  -0.03404 
-#F-statistic: 0.01244 on 1 and 29 DF,  p-value: 0.9119
-imodg<-lm(glc$dC13~glc$Tmax_sm) 
-summary(imodg)
-#Multiple R-squared:  0.09879,	Adjusted R-squared:  0.08146 
-#F-statistic:   5.7 on 1 and 52 DF,  p-value: 0.02063
-
-#....................................................................................
-#....................................................................................
-
-#load stomata-isotope
-stoma <- read.csv("GeumStomata_V9.csv")
-df1 <-stoma %>% dplyr::inner_join(clim, by=c("Population"))
-dfb<-subset(df1, subset=Region.x=='Prairie' | Region.x=='GL Alvar')
-library(ggpubr)
-col <- ggarrange(c, d, h, i,labels = c("A", "B", "C", "D"),ncol=2,nrow=2)
-col
-
-bw<-ggarrange(cb,dw,hb,ib, labels = c("A", "B", "C", "D"),ncol=2,nrow=2)
-bw
 #subset data to get r2
-prc <- subset(dfb, Region.x == "Prairie")
-glc <- subset(dfb, Region.x =="GL Alvar")
+prc <- subset(dfb, Region == "Prairie")
+glc <- subset(dfb, Region =="GL Alvar")
 
-library(ggplot2)
-#----------------------------------
+
 #GCL_B
-#----------------------------------
-#climate-moisture deficit for spring--------------------------------------------------
-c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Av_GCLengthB, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
-  #annotate("text",label="GLAr^2 == 0.03704",x=130,y=0.035,parse=TRUE,size=2,colour="darkslategray3")+
-  #annotate("text",label="PRAr^2 == 0.06628",x=130,y=0.0357,parse=TRUE,size=2,colour="gold3")+
-  annotate("text", label="*", x=88.65124456, y=0.02607884, col="black", size=13)+
-  annotate("text", label="*", x=40.18813232, y=0.02500193, col="black", size=13)+
-  ylab("Abaxial Guard Cell Length")+xlab("Spring Climate Moisture Deficit")+ 
-  geom_vline(xintercept=55,col="gray60",lwd=0.75,lty=2)+
-  theme(legend.position = "none")
-c
-
+#####################################
 #bw
-cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Av_GCLengthB, colour=Region.x))+
+cb<-ggplot(dfb, aes(x=dfb$Av_GCLengthB, y = dfb$sm.3, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text",label="GLAr^2 == 0.03704",x=130,y=0.035,parse=TRUE,size=2,colour="black")+
   #annotate("text",label="PRAr^2 == 0.06628",x=130,y=0.0357,parse=TRUE,size=2,colour="gray48")+ annotate("text", label="*", x=88.65124456, y=0.02607884, col="black", size=13)+
-  annotate("text", label="*", x=40.18813232, y=0.02500193, col="black", size=13)+
-  ylab("Abaxial Guard Cell Length")+xlab("Spring Climate Moisture Deficit")+ 
-  geom_vline(xintercept=55,col="gray60",lwd=0.75,lty=2)+
-  theme(legend.position = "none")
+#  annotate("text", label="*", x=40.18813232, y=0.02500193, col="black", size=13)+
+#  ylab("Abaxial Guard Cell Length")+xlab("Spring Climate Moisture Deficit")+ 
+#  geom_vline(xintercept=55,col="gray60",lwd=0.75,lty=2)+
+  theme(legend.position = "top")
 cb
-
 #quadratic BEST
 cmodp<-lm(prc$Av_GCLengthB~prc$CMD_sp+ I(prc$CMD_sp^2)) 
 summary(cmodp) 
@@ -209,31 +105,6 @@ summary(cmodg)
 #Multiple R-squared:  0.006082,	Adjusted R-squared:  0.00325 
 #F-statistic: 2.148 on 1 and 351 DF,  p-value: 0.1437
 
-#climate-moisture deficit for summer-------------------------------------------------
-#color
-d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Av_GCLengthB, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
-  #annotate("text",label="GLAr^2 == 0.02676",x=400,y=0.035,parse=TRUE,size=2,colour="darkslategray3")+
-  #annotate("text",label="PRAr^2 == 0.07218",x=400,y=0.0357,parse=TRUE,size=2,colour="gold3")+ annotate("text", label="*", x=88.65124456, y=0.02607884, col="black", size=13)+
-  annotate("text", label="*", x=157.953207, y=0.026614, col="black", size=13)+
-  annotate("text", label="*", x=9.543577e+01, y=6.122797e-04, col="black", size=13)+
-  ylab("Abaxial Guard Cell Length")+xlab("Summer Climate Moisture Deficit")+ 
-  geom_vline(xintercept=155,col="gray60",lwd=0.75,lty=2)+
-  theme(legend.position = "none")
-d
-#b&w
-dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Av_GCLengthB, colour=Region.x))+
-  geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=c("black", "gray48")) +
-  #annotate("text",label="GLAr^2 == 0.02676",x=400,y=0.035,parse=TRUE,size=2,colour="black")+
-  #annotate("text",label="PRAr^2 == 0.07218",x=400,y=0.0357,parse=TRUE,size=2,colour="gray48")+
-  annotate("text", label="*", x=157.953207, y=0.026614, col="black", size=13)+
-  annotate("text", label="*", x=9.543577e+01, y=6.122797e-04, col="black", size=13)+
-  ylab("Abaxial Guard Cell Length")+xlab("Summer Climate Moisture Deficit")+ 
-  geom_vline(xintercept=155,col="gray60",lwd=0.75,lty=2)+
-  theme(legend.position = "none")
-dw
 
 #quadratic BEST
 dmodpq<-lm(prc$Av_GCLengthB~prc$CMD_sm+ I(prc$CMD_sm^2)) 
@@ -256,9 +127,9 @@ summary(dmodgq)
 #F-statistic: 9.646 on 1 and 351 DF,  p-value: 0.002052
 
 #spring mean maximum temperature (?C)----------------------------------------------------
-h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthB, colour=Region.x))+
+h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthB, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=13.72070447, y=0.01339613, col="black", size=13)+
   #annotate("text", label="*", x=7.95900851, y=0.06304594, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.01109",x=16,y=0.035,parse=TRUE,size=2, colour="darkslategray3")+
@@ -270,7 +141,7 @@ h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthB, colour=Region.x))+
 h
 
 #bw
-hb<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthB, colour=Region.x))+
+hb<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthB, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) + 
   #annotate("text", label="*", x=13.72070447, y=0.01339613, col="black", size=13)+
@@ -304,9 +175,9 @@ summary(hmodgq)
 #F-statistic: 3.761 on 1 and 351 DF,  p-value: 0.05327
 
 #summer mean maximum temperature (?C)--------------------------------------------------
-i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthB, colour=Region.x))+
+i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthB, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=27.36456423, y=0.02985947, col="black", size=13)+
   #annotate("text", label="*", x=23.82605697, y=0.02051722, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.008851",x=28.5,y=0.034,parse=TRUE,size=2, colour="darkslategray3")+
@@ -316,7 +187,7 @@ i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthB, colour=Region.x))+
 
 i
 #bw
-ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthB, colour=Region.x))+
+ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthB, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) + 
   #annotate("text", label="*", x=27.36456423, y=0.02985947, col="black", size=13)+
@@ -358,9 +229,9 @@ bw
 #GCL_T
 #-----------------------------------------
 #climate-moisture deficit for spring-------------------------------------------
-c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Av_GCLengthT, colour=Region.x))+
+c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=88.58770541, y=0.02596007, col="black", size=13)+
   #annotate("text", label="*", x=42.87992547, y=0.02192606, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.09722",x=135,y=0.035,parse=TRUE,size=2,colour="darkslategray3")+
@@ -370,7 +241,7 @@ c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Av_GCLengthT, colour=Region.x))+
   theme(legend.position = "none")
 c
 #bw
-cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Av_GCLengthT, colour=Region.x))+
+cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=88.58770541, y=0.02596007, col="black", size=13)+
@@ -401,9 +272,9 @@ summary(cmodg)
 #summary(cmodgl) 
 #Multiple R-squared:  0.03325,	Adjusted R-squared:  0.03044 
 #F-statistic: 11.83 on 1 and 344 DF,  p-value: 0.0006537
-#c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Av_GCLengthT, colour=Region.x))+
+#c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.03325",x=135,y=0.035,parse=TRUE,size=2,colour="darkslategray3")+
   annotate("text",label="PRAr^2 ==  0.03719",x=135,y=0.0354,parse=TRUE,size=2,colour="gold3")+
   ylab("Adaxial Guard Cell Length")+xlab("Spring Climate Moisture Deficit")+ 
@@ -413,9 +284,9 @@ summary(cmodg)
   
 #climate-moisture deficit for summer-------------------------------------------
 #color
-d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Av_GCLengthT, colour=Region.x))+
+d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) + 
+  scale_colour_manual(values=col.bw) + 
   #annotate("text", label="*", x=153.65064803, y=0.02621779, col="black", size=13)+
   #annotate("text", label="*", x=4969.650706, y=2.564034, col="black", size=13)+
   annotate("text",label="GLAr^2 ==  0.0677",x=400,y=0.035,parse=TRUE,size=2,colour="darkslategray3")+
@@ -425,7 +296,7 @@ d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Av_GCLengthT, colour=Region.x))+
   theme(legend.position = "none")
 d
 #b&w
-dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Av_GCLengthT, colour=Region.x))+
+dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=153.65064803, y=0.02621779, col="black", size=13)+
@@ -456,9 +327,9 @@ summary(dmodgq)
 #summary(dmodg)
 #Multiple R-squared:  0.06124,	Adjusted R-squared:  0.05851 
 #F-statistic: 22.44 on 1 and 344 DF,  p-value: 3.178e-06
-d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Av_GCLengthT, colour=Region.x))+
+d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 ==  0.04703",x=400,y=0.035,parse=TRUE,size=2,colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.06124",x=400,y=0.0354,parse=TRUE,size=2,colour="gold3")+
   ylab("Adaxial Guard Cell Length")+xlab("Summer Climate Moisture Deficit")+ 
@@ -466,9 +337,9 @@ d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Av_GCLengthT, colour=Region.x))+
   theme(legend.position = "none")
 d
 #spring mean maximum temperature (?C)-----------------------------------------------
-h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthT, colour=Region.x))+
+h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=12.11180500, y=-0.01467967, col="black", size=13)+
   #annotate("text", label="*", x=9.24224967, y=0.03538059, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.03368",x=16,y=0.035,parse=TRUE,size=2, colour="darkslategray3")+
@@ -480,7 +351,7 @@ h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthT, colour=Region.x))+
 h
 
 #bw
-hb<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthT, colour=Region.x))+
+hb<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=12.11180500, y=-0.01467967, col="black", size=13)+
@@ -512,9 +383,9 @@ summary(hmodgq)
 #summary(hmodg)
 #Multiple R-squared:  0.02449,	Adjusted R-squared:  0.02166 
 #F-statistic: 8.637 on 1 and 344 DF,  p-value: 0.003517
-#h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthT, colour=Region.x))+
+#h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.02449",x=16,y=0.035,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.02692",x=16,y=0.0354,parse=TRUE,size=2, colour="gold3")+
   ylab("Adaxial Guard Cell Length")+xlab("Spring Mean Maximum Temperature (?C)")+
@@ -523,9 +394,9 @@ summary(hmodgq)
 
 #h
 #summer mean maximum temperature (?C)-----------------------------------------------
-i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthT, colour=Region.x))+
+i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=27.36139673, y=-0.02939387, col="black", size=13)+
   #annotate("text", label="*", x=22.06674900, y=0.06889961, col="black", size=13)+
   annotate("text",label="GLAr^2 ==  0.02345",x=28.5,y=0.035,parse=TRUE,size=2, colour="darkslategray3")+
@@ -535,7 +406,7 @@ i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthT, colour=Region.x))+
 
 i
 #bw
-ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthT, colour=Region.x))+
+ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48"))+
   #annotate("text", label="*", x=27.36139673, y=-0.02939387, col="black", size=13)+
@@ -566,9 +437,9 @@ summary(imodgq)
 #summary(imodg)
 #Multiple R-squared:  0.02014,	Adjusted R-squared:  0.0173 
 #F-statistic: 7.072 on 1 and 344 DF,  p-value: 0.008197
-#i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthT, colour=Region.x))+
+#i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Av_GCLengthT, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 ==  0.02014",x=28.5,y=0.035,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 ==  0.007585",x=28.5,y=0.0354,parse=TRUE,size=2,colour="gold3")+
   ylab("Adaxial Guard Cell Length")+xlab("Summer Mean Maximum Temperature (?C)")+
@@ -585,9 +456,9 @@ bw
 #Density B
 #--------------------------------------------------------
 #climate-moisture deficit for spring-------------------------------------------------
-c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_B, colour=Region.x))+
+c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat)+
+  scale_colour_manual(values=col.bw)+
   #annotate("text", label="*", x=85.09458, y=277.30348, col="black", size=13)+
   #annotate("text", label="*", x=42.81667, y=443.14718, col="black", size=13)+
   annotate("text",label="GLAr^2 ==  0.06485",x=130,y=435,parse=TRUE,size=2,colour="darkslategray3")+
@@ -598,7 +469,7 @@ c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_B, colour=Region.x))+
 c
 
 #bw
-cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_B, colour=Region.x))+
+cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=85.09458, y=277.30348, col="black", size=13)+
@@ -629,9 +500,9 @@ summary(cmodg)
 #summary(cmodgl)
 #Multiple R-squared:  0.02417,	Adjusted R-squared:  0.02141 
 #F-statistic: 8.766 on 1 and 354 DF,  p-value: 0.003275
-#c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_B, colour=Region.x))+
+#c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.02417",x=130,y=435,parse=TRUE,size=2,colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.05781",x=130,y=450,parse=TRUE,size=2,colour="gold3")+
   ylab("Abaxial Stomatal Density")+xlab("Spring Climate Moisture Deficit")+ 
@@ -640,9 +511,9 @@ summary(cmodg)
 #c
 #climate-moisture deficit for summer--------------------------------------------------
 #color
-d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_B, colour=Region.x))+
+d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=97.9731, y=329.6663, col="black", size=13)+
   #annotate("text", label="*", x=30.91213, y=2564.14212, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.03798",x=400,y=435,parse=TRUE,size=2,colour="darkslategray3")+
@@ -652,7 +523,7 @@ d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_B, colour=Region.x))+
   theme(legend.position = "none")
 d
 #b&w quad
-dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_B, colour=Region.x))+
+dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=97.9731, y=329.6663, col="black", size=13)+
@@ -683,9 +554,9 @@ summary(dmodgq)
 #summary(dmodg)
 #Multiple R-squared:  0.03417,	Adjusted R-squared:  0.03144 
 #F-statistic: 12.52 on 1 and 354 DF,  p-value: 0.0004551
-#d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_B, colour=Region.x))+
+#d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.03417",x=400,y=435,parse=TRUE,size=2,colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.2805",x=400,y=450,parse=TRUE,size=2,colour="gold3")+
   ylab("Abaxial Stomatal Density")+xlab("Summer Climate Moisture Deficit")+ 
@@ -695,9 +566,9 @@ summary(dmodgq)
 
 #spring mean maximum temperature (?C)---------------------------------------------------
 #color
-h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_B, colour=Region.x))+
+h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=14.53504, y=181.99229, col="black", size=13)+
   #annotate("text", label="*", x=8.485958, y=-299.205200, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.02924",x=16.5,y=435,parse=TRUE,size=2,colour="darkslategray3")+
@@ -707,7 +578,7 @@ h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_B, colour=Region.x))+
   theme(legend.position = "none")
 h
 #b&w quad
-hw<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_B, colour=Region.x))+
+hw<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=14.53504, y=181.99229, col="black", size=13)+
@@ -738,9 +609,9 @@ summary(hmodg)
 #summary(hmodgl)
 #Multiple R-squared:  0.02916,	Adjusted R-squared:  0.02642 
 #F-statistic: 10.63 on 1 and 354 DF,  p-value: 0.001219
-#h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_B, colour=Region.x))+
+#h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.02449",x=16,y=435,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.02692",x=16,y=450,parse=TRUE,size=2, colour="gold3")+
   ylab("Abaxial Stomatal Density")+xlab("Spring Mean Maximum Temperature (?C)")+
@@ -749,9 +620,9 @@ summary(hmodg)
 
 #h
 #summer mean maximum temperature (?C)---------------------------------------------------
-i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_B, colour=Region.x))+
+i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=22.0724, y=-1457.0552, col="black", size=13)+
   #annotate("text", label="*", x=24.57056, y=947.88424, col="black", size=13)+
   annotate("text",label="GLAr^2 ==  0.03275",x=28.5,y=435,parse=TRUE,size=2, colour="darkslategray3")+
@@ -761,7 +632,7 @@ i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_B, colour=Region.x))+
 
 i
 #bw
-ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_B, colour=Region.x))+
+ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=22.0724, y=-1457.0552, col="black", size=13)+
@@ -791,9 +662,9 @@ summary(imodg)
 #summary(imodgl)
 #Multiple R-squared:  0.02235,	Adjusted R-squared:  0.01958 
 #F-statistic: 8.091 on 1 and 354 DF,  p-value: 0.004707
-#i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_B, colour=Region.x))+
+#i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.02235",x=28.5,y=435,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.05447",x=28.5,y=450,parse=TRUE,size=2, colour="gold3")+
   ylab("Abaxial Stomatal Density")+xlab("Summer Mean Maximum Temperature (?C)")+
@@ -813,7 +684,7 @@ bw
 #--------------------------------------------------
 #climate-moisture deficit for spring-------------------------------------------------
 #color
-c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_T, colour=Region.x))+
+c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("darkslategray3", "gold3")) +
   #annotate("text", label="*", x=82.73791, y=222.06189, col="black", size=13)+
@@ -825,7 +696,7 @@ c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_T, colour=Region.x))+
   theme(legend.position = "none")
 c
 #bw
-cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_T, colour=Region.x))+
+cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=82.73791, y=222.06189, col="black", size=13)+
@@ -856,9 +727,9 @@ summary(cmodg)
 #summary(cmodgl)
 #Multiple R-squared:  0.03356,	Adjusted R-squared:  0.03077 
 #F-statistic: 12.05 on 1 and 347 DF,  p-value: 0.000584
-#c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_T, colour=Region.x))+
+#c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$Density_T, colour=Region))+
 geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.03356",x=130,y=335,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.1127",x=130,y=350,parse=TRUE,size=2, colour="gold3")+
   ylab("Adaxial Stomatal Density")+xlab("Spring Climate Moisture Deficit")+
@@ -868,9 +739,9 @@ geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
 #c
 #climate-moisture deficit for summer----------------------------------------------------
 #color
-d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_T, colour=Region.x))+
+d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=122.8558, y=218.5621, col="black", size=13)+
  # annotate("text", label="*", x=111.9069, y=369.8539, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.05768",x=400,y=335,parse=TRUE,size=2,colour="darkslategray3")+
@@ -880,7 +751,7 @@ d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_T, colour=Region.x))+
   theme(legend.position = "none")
 d
 #b&w
-dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_T, colour=Region.x))+
+dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=122.8558, y=218.5621, col="black", size=13)+
@@ -911,9 +782,9 @@ summary(dmodg)
 #summary(dmodgl)
 #Multiple R-squared:  0.05763,	Adjusted R-squared:  0.05492 
 #F-statistic: 21.22 on 1 and 347 DF,  p-value: 5.753e-06
-d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_B, colour=Region.x))+
+d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.05763",x=400,y=435,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.1497",x=400,y=450,parse=TRUE,size=2, colour="gold3")+
   ylab("Adaxial Stomatal Density")+xlab("Summer Climate Moisture Deficit")+
@@ -923,9 +794,9 @@ d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$Density_B, colour=Region.x))+
 d
 #spring mean maximum temperature (?C)--------------------------------------------------
 #color
-h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_T, colour=Region.x))+
+h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=14.47218, y=166.29841, col="black", size=13)+
   #annotate("text", label="*", x=11.30716, y=407.47429, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.02449",x=16,y=335,parse=TRUE,size=2, colour="darkslategray3")+
@@ -936,7 +807,7 @@ h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_T, colour=Region.x))+
 
 h
 #bw
-hb<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_T, colour=Region.x))+
+hb<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=14.47218, y=166.29841, col="black", size=13)+
@@ -967,9 +838,9 @@ summary(hmodg)
 #summary(hmodgl)
 #Multiple R-squared:  0.05262,	Adjusted R-squared:  0.04989 
 #F-statistic: 19.27 on 1 and 347 DF,  p-value: 1.505e-05
-#h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_T, colour=Region.x))+
+#h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$Density_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.05262",x=16,y=335,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.00409",x=16,y=350,parse=TRUE,size=2, colour="gold3")+
   ylab("Adaxial Stomatal Density")+xlab("Spring Mean Maximum Temperature (?C)")+
@@ -980,9 +851,9 @@ summary(hmodg)
 ##combined linear and quadratics
 #h<- ggplot() +
   geom_point(data=prc, aes(x=prc$Tmax_sp, y=prc$Density_T)) + 
-  stat_smooth(data=prc,aes(x=prc$Tmax_sp, y=prc$Density_T,colour=prc$Region.x),method = 'lm',formula=y~x+I(x^2))+
+  stat_smooth(data=prc,aes(x=prc$Tmax_sp, y=prc$Density_T,colour=prc$Region),method = 'lm',formula=y~x+I(x^2))+
   geom_point(data=glc, aes(x=glc$Tmax_sp, y=glc$Density_T))+
-  stat_smooth(data=glc,aes(x=glc$Tmax_sp, y=glc$Density_T,colour=glc$Region.x), method = 'lm') +
+  stat_smooth(data=glc,aes(x=glc$Tmax_sp, y=glc$Density_T,colour=glc$Region), method = 'lm') +
   annotate("text",label="GLAr^2 == 0.05262",x=16,y=435,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 ==  0.1821",x=16,y=450,parse=TRUE,size=2, colour="gold3")+
   ylab("Adaxial Stomatal Density")+xlab("Spring Mean Maximum Temperature (?C)")+
@@ -992,9 +863,9 @@ summary(hmodg)
 #funkymonkeyb&w
 #hb<- ggplot() +
   geom_point(data=prc, aes(x=prc$Tmax_sp, y=prc$Density_T)) + 
-  stat_smooth(data=prc,aes(x=prc$Tmax_sp, y=prc$Density_T,colour=prc$Region.x),method = 'lm',formula=y~x+I(x^2))+
+  stat_smooth(data=prc,aes(x=prc$Tmax_sp, y=prc$Density_T,colour=prc$Region),method = 'lm',formula=y~x+I(x^2))+
   geom_point(data=glc, aes(x=glc$Tmax_sp, y=glc$Density_T)) + 
-  stat_smooth(data=glc,aes(x=glc$Tmax_sp, y=glc$Density_T,colour=glc$Region.x), method = 'lm') +
+  stat_smooth(data=glc,aes(x=glc$Tmax_sp, y=glc$Density_T,colour=glc$Region), method = 'lm') +
   annotate("text",label="GLAr^2 == 0.05262",x=16,y=435,parse=TRUE,size=2, colour="black")+
   annotate("text",label="PRAr^2 ==  0.1821",x=16,y=450,parse=TRUE,size=2, colour="gray48")+
   ylab("Adaxial Stomatal Density")+xlab("Spring Mean Maximum Temperature (?C)")+
@@ -1003,9 +874,9 @@ summary(hmodg)
 #hb
 
 #summer mean maximum temperature (?C)---------------------------------------------------
-i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_T, colour=Region.x))+
+i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=27.07972, y=124.24815, col="black", size=13)+
   #annotate("text", label="*", x=24.09835, y=313.36490, col="black", size=13)+ 
   annotate("text",label="GLAr^2 ==  0.03762",x=28.5,y=335,parse=TRUE,size=2, colour="darkslategray3")+
@@ -1015,7 +886,7 @@ i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_T, colour=Region.x))+
 
 i
 #bw
-ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_T, colour=Region.x))+
+ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48"))+
   #annotate("text", label="*", x=27.07972, y=124.24815, col="black", size=13)+
@@ -1046,9 +917,9 @@ summary(imodg)
 #summary(imodgl)
 #Multiple R-squared:  0.03393,	Adjusted R-squared:  0.03115 
 #F-statistic: 12.19 on 1 and 347 DF,  p-value: 0.000543
-#i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_T, colour=Region.x))+
+#i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$Density_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 ==  0.03393",x=28.5,y=335,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.01034",x=28.5,y=350,parse=TRUE,size=2, colour="gold3")+
   ylab("Adaxial Stomatal Density")+xlab("Summer Mean Maximum Temperature (?C)")+
@@ -1066,9 +937,9 @@ bw
 #SAI_B
 #-------------------------------------------------
 #climate-moisture deficit for spring---------------------------------------------------
-c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_B, colour=Region.x))+
+c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat)+
+  scale_colour_manual(values=col.bw)+
   #annotate("text", label="*", x=85.972450, y=7.155827, col="black", size=13)+
   #annotate("text", label="*", x=42.35001, y=11.21488, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.04422",x=130,y=11.7,parse=TRUE,size=2,colour="darkslategray3")+
@@ -1078,7 +949,7 @@ c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_B, colour=Region.x))+
   theme(legend.position = "none")
 c
 #bw
-cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_B, colour=Region.x))+
+cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48"))+
   #annotate("text", label="*", x=85.972450, y=7.155827, col="black", size=13)+
@@ -1109,9 +980,9 @@ cmodg<-lm(glc$SAI_B~glc$CMD_sp)
 summary(cmodg)
 #Multiple R-squared:  0.02187,	Adjusted R-squared:  0.01909 
 #F-statistic:  7.85 on 1 and 351 DF,  p-value: 0.005365
-c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_B, colour=Region.x))+
+c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.02187",x=130,y=11.7,parse=TRUE,size=2,colour="darkslategray3")+
   annotate("text",label="PRAr^2 ==  0.0438",x=130,y=11.4,parse=TRUE,size=2,colour="gold3")+
   ylab("Abaxial Area Index")+xlab("Spring Climate Moisture Deficit")+ 
@@ -1120,9 +991,9 @@ c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_B, colour=Region.x))+
 c
 #climate-moisture deficit for summer------------------------------------------------
 #color
-d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_B, colour=Region.x))+
+d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat)+
+  scale_colour_manual(values=col.bw)+
   #annotate("text", label="*", x=89.40094, y=9.39186, col="black", size=13)+
   #annotate("text", label="*", x=112.73981, y=19.47034, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.02638",x=400,y=11.7,parse=TRUE,size=2,colour="darkslategray3")+
@@ -1132,7 +1003,7 @@ d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_B, colour=Region.x))+
   theme(legend.position = "none")
 d
 #b&w
-dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_B, colour=Region.x))+
+dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48"))+
   #annotate("text", label="*", x=89.40094, y=9.39186, col="black", size=13)+
@@ -1163,9 +1034,9 @@ dmodg<-lm(glc$SAI_B~glc$CMD_sm)
 summary(dmodg)
 #Multiple R-squared:  0.0217,	Adjusted R-squared:  0.01891 
 #F-statistic: 7.784 on 1 and 351 DF,  p-value: 0.005559
-d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_B, colour=Region.x))+
+d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.0217",x=400,y=11.7,parse=TRUE,size=2,colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.2977",x=400,y=11.4,parse=TRUE,size=2,colour="gold3")+
   ylab("Abaxial Area Index")+xlab("Summer Climate Moisture Deficit")+ 
@@ -1174,9 +1045,9 @@ d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_B, colour=Region.x))+
 d
 
 #spring mean maximum temperature (?C)------------------------------------------------
-h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_B, colour=Region.x))+
+h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat)+
+  scale_colour_manual(values=col.bw)+
   #annotate("text", label="*", x=14.482577, y=4.662539, col="black", size=13)+
   #annotate("text", label="*", x=12.08311, y=29.53010, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.0238",x=16,y=11.7,parse=TRUE,size=2, colour="darkslategray3")+
@@ -1187,7 +1058,7 @@ h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_B, colour=Region.x))+
 
 h
 #bw
-hb<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_B, colour=Region.x))+
+hb<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48"))+
   #annotate("text", label="*", x=14.482577, y=4.662539, col="black", size=13)+
@@ -1220,9 +1091,9 @@ hmodg<-lm(glc$SAI_B~glc$Tmax_sp)
 summary(hmodg)
 #Multiple R-squared:  0.02325,	Adjusted R-squared:  0.02047 
 #F-statistic: 8.354 on 1 and 351 DF,  p-value: 0.004087
-h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_B, colour=Region.x))+
+h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.02325",x=16,y=11.7,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.02568",x=16,y=11.4,parse=TRUE,size=2, colour="gold3")+
   ylab("Abaxial Area Index")+xlab("Spring Mean Maximum Temperature (?C)")+
@@ -1232,9 +1103,9 @@ h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_B, colour=Region.x))+
 h
 
 #summer mean maximum temperature (?C)------------------------------------------------
-i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_B, colour=Region.x))+
+i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat)+
+  scale_colour_manual(values=col.bw)+
   #annotate("text", label="*", x=35.97574, y=65.30908, col="black", size=13)+
   #annotate("text", label="*", x=23.96509, y=12.15934, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.03762",x=28.5,y=11.7,parse=TRUE,size=2, colour="darkslategray3")+
@@ -1244,7 +1115,7 @@ i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_B, colour=Region.x))+
 
 i
 #bw
-ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_B, colour=Region.x))+
+ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48"))+
   #annotate("text", label="*", x=35.97574, y=65.30908, col="black", size=13)+
@@ -1275,9 +1146,9 @@ imodgl<-lm(glc$SAI_B~glc$Tmax_sm)
 summary(imodgl)
 #Multiple R-squared:  0.01969,	Adjusted R-squared:  0.01689 
 #F-statistic: 7.048 on 1 and 351 DF,  p-value: 0.008295
-i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_B, colour=Region.x))+
+i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_B, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.01969",x=28.5,y=11.7,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.07592",x=28.5,y=11.4,parse=TRUE,size=2,colour="gold3")+
   ylab("Abaxial Area Index")+xlab("Summer Mean Maximum Temperature (?C)")+
@@ -1294,9 +1165,9 @@ bw
 #SAI_T
 #------------------------------------------------
 #climate-moisture deficit for spring---------------------------------------------------
-c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_T, colour=Region.x))+
+c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat)+
+  scale_colour_manual(values=col.bw)+
   #annotate("text", label="*", x=83.849163, y=5.694438, col="black", size=13)+
   #annotate("text", label="*", x=6.028046, y=42.424627, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.04016",x=130,y=9,parse=TRUE,size=2,colour="darkslategray3")+
@@ -1307,7 +1178,7 @@ c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_T, colour=Region.x))+
 c
 
 #bw
-cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_T, colour=Region.x))+
+cb<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48"))+
   #annotate("text", label="*", x=83.849163, y=5.694438, col="black", size=13)+
@@ -1338,9 +1209,9 @@ cmodgl<-lm(glc$SAI_T~glc$CMD_sp)
 summary(cmodgl)
 #Multiple R-squared:  0.02233,	Adjusted R-squared:  0.01949 
 #F-statistic: 7.857 on 1 and 344 DF,  p-value: 0.00535
-c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_T, colour=Region.x))+
+c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.02233",x=130,y=9,parse=TRUE,size=2,colour="darkslategray3")+
   annotate("text",label="PRAr^2 ==  0.09644",x=130,y=8.8,parse=TRUE,size=2,colour="gold3")+
   ylab("Adaxial Area Index")+xlab("Spring Climate Moisture Deficit")+ 
@@ -1349,9 +1220,9 @@ c<-ggplot(dfb, aes(x=dfb$CMD_sp, y=dfb$SAI_T, colour=Region.x))+
 c
 #climate-moisture deficit for summer---------------------------------------------------
 #color
-d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_T, colour=Region.x))+
+d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat)+
+  scale_colour_manual(values=col.bw)+
   #annotate("text", label="*", x=119.819900, y=6.440876, col="black", size=13)+
   #annotate("text", label="*", x=120.608736, y=7.179445, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.03709",x=400,y=9,parse=TRUE,size=2,colour="darkslategray3")+
@@ -1361,7 +1232,7 @@ d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_T, colour=Region.x))+
   theme(legend.position = "none")
 d
 #b&w
-dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_T, colour=Region.x))+
+dw<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48"))+
   #annotate("text", label="*", x=119.819900, y=6.440876, col="black", size=13)+
@@ -1393,9 +1264,9 @@ dmodg<-lm(glc$SAI_T~glc$CMD_sm)
 summary(dmodg)
 #Multiple R-squared:  0.03606,	Adjusted R-squared:  0.03325 
 #F-statistic: 12.87 on 1 and 344 DF,  p-value: 0.0003828
-d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_T, colour=Region.x))+
+d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.03606",x=400,y=9,parse=TRUE,size=2,colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.1385",x=400,y=8.8,parse=TRUE,size=2,colour="gold3")+
   ylab("Adaxial Area Index")+xlab("Summer Climate Moisture Deficit")+ 
@@ -1404,9 +1275,9 @@ d<-ggplot(dfb, aes(x=dfb$CMD_sm, y=dfb$SAI_T, colour=Region.x))+
 d
 
 #spring mean maximum temperature (?C)-----------------------------------------------
-h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_T, colour=Region.x))+
+h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=14.47385, y=4.38189, col="black", size=13)+
   #annotate("text", label="*", x=10.736151, y=7.679337, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.04216",x=16,y=11.7,parse=TRUE,size=2, colour="darkslategray3")+
@@ -1417,7 +1288,7 @@ h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_T, colour=Region.x))+
 
 h
 #bw
-hb<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_T, colour=Region.x))+
+hb<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2)+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=14.47385, y=4.38189, col="black", size=13)+
@@ -1449,9 +1320,9 @@ hmodg<-lm(glc$SAI_T~glc$Tmax_sp)
 summary(hmodg)
 #Multiple R-squared:  0.04206,	Adjusted R-squared:  0.03927 
 #F-statistic:  15.1 on 1 and 344 DF,  p-value: 0.0001222
-h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_T, colour=Region.x))+
+h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.04206",x=16,y=11.7,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.0004734",x=16,y=11.4,parse=TRUE,size=2, colour="gold3")+
   ylab("Adaxial Area Index")+xlab("Spring Mean Maximum Temperature (?C)")+
@@ -1460,9 +1331,9 @@ h<-ggplot(dfb, aes(x=dfb$Tmax_sp, y=dfb$SAI_T, colour=Region.x))+
 
 h
 #summer mean maximum temperature (?C)-------------------------------------------------
-i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_T, colour=Region.x))+
+i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   #annotate("text", label="*", x=27.046443, y=3.216157, col="black", size=13)+
   #annotate("text", label="*", x=23.972746, y=6.650427, col="black", size=13)+
   annotate("text",label="GLAr^2 == 0.03762",x=28.5,y=9,parse=TRUE,size=2, colour="darkslategray3")+
@@ -1472,7 +1343,7 @@ i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_T, colour=Region.x))+
 
 i
 #bw
-ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_T, colour=Region.x))+
+ib<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
   scale_colour_manual(values=c("black", "gray48")) +
   #annotate("text", label="*", x=27.046443, y=3.216157, col="black", size=13)+
@@ -1503,9 +1374,9 @@ imodgl<-lm(glc$SAI_T~glc$Tmax_sm)
 summary(imodgl)
 #Multiple R-squared:  0.0255,	Adjusted R-squared:  0.02266 
 #F-statistic: 9.001 on 1 and 344 DF,  p-value: 0.002896
-i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_T, colour=Region.x))+
+i<-ggplot(dfb, aes(x=dfb$Tmax_sm, y=dfb$SAI_T, colour=Region))+
   geom_point()+stat_smooth(method = 'lm', alpha=0.2,formula=y~x+I(x^2))+theme_classic()+
-  scale_colour_manual(values=col.kat) +
+  scale_colour_manual(values=col.bw) +
   annotate("text",label="GLAr^2 == 0.0255",x=28.5,y=9,parse=TRUE,size=2, colour="darkslategray3")+
   annotate("text",label="PRAr^2 == 0.01859",x=28.5,y=8.8,parse=TRUE,size=2,colour="gold3")+
   ylab("Adaxial Area Index")+xlab("Summer Mean Maximum Temperature (?C)")+
